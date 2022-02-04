@@ -1,0 +1,31 @@
+// Override default variables before the import
+/*! `Custom` Bootstrap 4 theme */
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:ital,wght@0,300;0,400;0,700;1,300;1,400;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&display=swap');
+$font-family-base: 'Roboto Condensed', sans-serif;
+$headings-font-family: 'PT Sans', sans-serif;
+
+$primary:#1e1541;
+$secondary:#dedde3;
+$success:#141c8f;
+$danger:#be1926;
+$info:#17a2b8;
+$warning:#ffee00;
+$light:#f2f2f2;
+$dark:#252525;
+$body-bg: #fff; 
+$white: #fff;
+$enable-gradients:false;
+
+$breakpoint-xs: 0;
+$breakpoint-sm: 576px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 992px;
+$breakpoint-xl: 1200px;
+	
+$spacer:1rem;
+$border-width:1px;
+$btn-border-radius:1.35rem;
+
+$enable-grid-classes:true;
+@import 'C:/Users/victor.santana/Desktop/PROJETOS V/render-bs4/node_modules/bootstrap/scss/bootstrap.scss';
