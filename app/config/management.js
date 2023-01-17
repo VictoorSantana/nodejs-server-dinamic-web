@@ -178,11 +178,38 @@ module.exports = {
         UPDATE plugins
         SET classNames = '${JSON.stringify(defaultValue)}'
         WHERE id = ${id}`, { type: "UPDATE" });
+    },
+
+
+    defaultMenuSection: async function(sectionId = []) {
+        let values = [];
+        const data = await conn.query(`
+        SELECT s.id, s.title FROM sections s
+        WHERE s.id IN (${sectionId})
+        AND s.display = 1
+        AND s.id_section = 0
+        ORDER BY FIND_IN_SET(s.id, '${sectionId}')`, { type: "SELECT" });
+
+        values = JSON.parse(JSON.stringify(data));
+        let result = [];
+
+        for (let j = 0; j < values.length; j++) {
+            const value = values[j];
+
+            let url = value.title + '';
+            url = url.replace(/[^a-zA-Z0-9 ]/g, '');
+            url = url.replace(new RegExp(' ', 'g'), '-');
+            url = url.replace(new RegExp('--', 'g'), '-');
+            url = url.toLowerCase();
+            url = `/secao/${url}/${value.id}`;
+
+            result.push({
+                title: value.title,
+                url
+            });
+        }
+
+        return result;
     }
-
-
-
-
-
 
 }

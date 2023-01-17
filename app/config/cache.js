@@ -50,8 +50,10 @@ module.exports = {
     
             fs.writeFile(`${__dirname}/../../public${folderName}/index.html`, values, (err) => {
                 if (err) { console.error(err); return; };
-                console.log(`Cache HTML has been created for ${folderName}`);
+                console.log(`Novo cache HTML criado: ${folderName}`);
             });
+        } else {
+            console.log('\x1b[33m%s\x1b[0m', 'O ENV de cache está desligado/desativado!');
         }        
     },
 

@@ -17,51 +17,42 @@ articleRepository.belongsTo(layoutRepository, { as: 'layout', foreignKey: 'id_la
 module.exports = {
 
     buildHome: async function (query) {
-        const response = await sectionRepository.findAll({
-            where: { id: 1 },
-            include: [
-                {
-                    model: layoutRepository, as: 'layout'
-                }
-            ]
-        });
+        // console.time();
 
-        const data = clone(response);
-        const pageData = data[0];
-        const layoutData = pageData.layout;
+        const newData = await conn.query(`
+        SELECT s.id, s.title, l.plugins FROM sections s
+        LEFT JOIN layouts l ON l.id = s.id_layout
+        WHERE s.id = ${1};`, { type: "SELECT" });      
+        
+        if(!newData[0]) {
+            console.log('\x1b[31m', 'Página inicial, ou seção com ID 1, não encontrado!');
+        }
 
-        const result = await this.buildPluginHtml(layoutData?.plugins, pageData.title);
+        const result = await this.buildPluginHtml(newData[0]?.plugins, newData[0].title);        
+
+
         saveHtml(result, '');
 
+        // console.timeEnd();
         return result;
     },
 
 
     buildArticle: async function (slug, id, query) {
-        const response = await articleRepository.findAll({
-            where: { id },
-            attributes: ['id', 'id_layout', 'title'],
-            include: [
-                {
-                    model: layoutRepository, as: 'layout'
-                }
-            ]
-        });
+        const newData = await conn.query(`
+        SELECT s.id, s.title, l.plugins FROM articles s
+        LEFT JOIN layouts l ON l.id = s.id_layout
+        WHERE s.id = ${id};`, { type: "SELECT" });   
 
-        const data = clone(response);
-
-        if (!data[0]) {
+        if (!newData[0]) {
             throw new HttpError('Página não encontrada.', 404);
         }
 
-        const pageData = data[0];
-        const layoutData = pageData.layout;
-
-        if (slug !== urlFy(pageData?.title)) {
+        if (slug !== urlFy(newData[0]?.title)) {
             throw new HttpError('Página não encontrada.', 404);
         }
 
-        const result = await this.buildPluginHtml(layoutData?.plugins, pageData.title, id);
+        const result = await this.buildPluginHtml(newData[0]?.plugins, newData[0]?.title, id);
 
         saveHtml(result, `/artigo/${slug}/${id}`);
         return result;
@@ -69,41 +60,34 @@ module.exports = {
 
 
     buildSection: async function (slug, id, query) {
-        const response = await sectionRepository.findAll({
-            where: { id },
-            attributes: ['id', 'id_layout', 'title'],
-            include: [
-                {
-                    model: layoutRepository, as: 'layout'
-                }
-            ]
-        });
+        const newData = await conn.query(`
+        SELECT s.id, s.title, l.plugins FROM sections s
+        LEFT JOIN layouts l ON l.id = s.id_layout
+        WHERE s.id = ${id};`, { type: "SELECT" });     
 
-        const data = clone(response);
+        if (!newData[0]) {
+            throw new HttpError('Página não encontrada.', 404);
+        }        
 
-        if (!data[0]) {
+        if (slug !== urlFy(newData[0]?.title)) {
             throw new HttpError('Página não encontrada.', 404);
         }
 
-        const pageData = data[0];
-        const layoutData = pageData.layout;
-
-        if (slug !== urlFy(pageData?.title)) {
-            throw new HttpError('Página não encontrada.', 404);
-        }
-
-        const result = await this.buildPluginHtml(layoutData?.plugins, pageData.title, id);
+        const result = await this.buildPluginHtml(newData[0]?.plugins, newData[0].title, id);
 
         saveHtml(result, `/secao/${slug}/${id}`);
         return result;
-
     },
 
     buildPluginHtml: async function (idLayoutPlugins = '', pageTitle = '', idParamPage = 0) {
 
-        const responsePlugins = await pluginRepository.findAll({
-            where: { id: idLayoutPlugins.split(',') }
-        });
+        const generalPlugins = idLayoutPlugins.split(',');
+        const responsePlugins = await conn.query(`
+        SELECT p.id, p.id_plugin, p.id_args, p.place 
+        FROM dynamic.plugins p
+        WHERE p.id IN (${generalPlugins})
+        ORDER BY FIND_IN_SET(p.id, '${generalPlugins}');`
+        , { type: "SELECT" });  
 
         const pluginsData = clone(responsePlugins);
 
